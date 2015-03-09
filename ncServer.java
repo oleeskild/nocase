@@ -74,6 +74,9 @@ public class ncServer {
                               }
                         };
 
+                        // Update threadID of peer
+                        p.setThreadID(t.getId());
+                        
                         // Add the thread for this new client to our list
                         threads.add(t);
                         // Start this thread
