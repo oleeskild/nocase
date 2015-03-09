@@ -65,11 +65,15 @@ public class ncServer {
                                           } catch (Exception ex) {
                                                 // Connection error, closing connnection and stopping thread
                                                 try {
-                                                      p.connection().close();
-                                                      connections.remove(p);
+                                                      // Remove thread from active peers
                                                       threads.remove(Thread.currentThread());
                                                       // DEBUG -- Print disconnect message to chat
-                                                      System.out.println("Thread " + Thread.currentThread().getId() + " aborted!");
+                                                      System.out.println("User " + p.connection.getInetAddress() + " aborted!");
+                                                      // Close connection
+                                                      p.connection().close();
+                                                      // Remove peer from list
+                                                      connections.remove(p);
+                                                      // Stop thread
                                                       Thread.currentThread().stop();
                                                 } catch (Exception exx) {
                                                       // Exception while closing socket?
@@ -101,14 +105,7 @@ public class ncServer {
       // Broadcasts the message "msg" to all connected peers
       public void broadcastMessage(String msg) throws Exception {
             for(peers p : connections) {
-                  if(p.connection().isConnected()) {
-                        p.sendMessage(msg);
-                  } else {
-                        Thread temp = Thread.currentThread();
-                        temp.stop();
-                        threads.remove(temp);
-                        System.out.println("Thread " + temp.getId() + " aborted!");
-                  }
+                  p.sendMessage(msg);
             }
       }
 
