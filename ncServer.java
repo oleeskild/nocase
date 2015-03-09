@@ -3,6 +3,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class ncServer {
+      // Socket-Listener for this server
       private final ServerSocket listener;
 
       // List of all threads, each client has their own thread to
@@ -41,8 +42,6 @@ public class ncServer {
                         while(true) {
                         try {
 
-                        //removeDeadConnections();
-
                         // Accept incoming connection
                         Socket newClient = listener.accept();
                         // Add to our peer object
@@ -64,19 +63,22 @@ public class ncServer {
                                                       System.out.println(msg);
                                                 }
                                           } catch (Exception ex) {
+                                                // Connection error, closing connnection and stopping thread
                                                 try {
-                                                      // Tell sender that his or her message could not be sent
-                                                      p.sendMessage("An exception occurred and your message was not sent!");
+                                                      p.connection().close();
+                                                      connections.remove(p);
+                                                      threads.remove(Thread.currentThread());
+                                                      // DEBUG -- Print disconnect message to chat
+                                                      System.out.println("Thread " + Thread.currentThread().getId() + " aborted!");
+                                                      Thread.currentThread().stop();
                                                 } catch (Exception exx) {
+                                                      // Exception while closing socket?
                                                 }
                                           }
                                     }
                               }
                         };
 
-                        // Update threadID of peer
-                        p.setThreadID(t.getId());
-                        
                         // Add the thread for this new client to our list
                         threads.add(t);
                         // Start this thread
@@ -99,13 +101,15 @@ public class ncServer {
       // Broadcasts the message "msg" to all connected peers
       public void broadcastMessage(String msg) throws Exception {
             for(peers p : connections) {
-                  p.sendMessage(msg);
+                  if(p.connection().isConnected()) {
+                        p.sendMessage(msg);
+                  } else {
+                        Thread temp = Thread.currentThread();
+                        temp.stop();
+                        threads.remove(temp);
+                        System.out.println("Thread " + temp.getId() + " aborted!");
+                  }
             }
-      }
-
-      // Handle disconnection of clients
-      public void removeDeadConnections() {
-            // TODO
       }
 
       // Info stored from a peer/client that connects to the server
@@ -116,24 +120,12 @@ public class ncServer {
             private BufferedReader response;
             // Send a message to the server
             private DataOutputStream client;
-            // ID of the thread this peer belongs to
-            private int threadID;
 
             // Initialize connection to let our peer be able to interact with the server
             public peers(Socket connection) throws Exception {
                   this.connection = connection;
                   this.response = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
                   this.client = new DataOutputStream(this.connection.getOutputStream());
-            }
-
-            // Update thread id
-            public void setThreadID(int id) {
-                  this.threadID = id;
-            }
-
-            // Get this peers thread id
-            public int getThreadID() {
-                  return this.threadID;
             }
 
             // Read a message from server
