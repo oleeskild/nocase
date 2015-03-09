@@ -93,5 +93,6 @@ public class ncClient {
             } catch (Exception ex) {
                   System.out.println("An error has occurred! Aborting...");
             }
+            System.exit(0);
       }
 }
