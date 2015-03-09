@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ncServer {
+      // Socket-Listener for this server
       private final ServerSocket listener;
 
       // List of all threads, each client has their own thread to
@@ -47,8 +48,6 @@ public class ncServer {
                         while(true) {
                         try {
 
-                        //removeDeadConnections();
-
                         // Accept incoming connection
                         Socket newClient = listener.accept();
                         // Add to our peer object
@@ -80,10 +79,20 @@ public class ncServer {
                                                       System.out.println(msg);
                                                 }
                                           } catch (Exception ex) {
+                                                // Connection error, closing connnection and stopping thread
                                                 try {
-                                                      // Tell sender that his or her message could not be sent
-                                                      p.sendMessage("An exception occurred and your message was not sent!");
+                                                      // Remove thread from active peers
+                                                      threads.remove(Thread.currentThread());
+                                                      // DEBUG -- Print disconnect message to chat
+                                                      System.out.println("User " + p.connection.getInetAddress() + " aborted!");
+                                                      // Close connection
+                                                      p.connection().close();
+                                                      // Remove peer from list
+                                                      connections.remove(p);
+                                                      // Stop thread
+                                                      Thread.currentThread().stop();
                                                 } catch (Exception exx) {
+                                                      // Exception while closing socket?
                                                 }
                                           }
                                     }
@@ -116,11 +125,6 @@ public class ncServer {
             }
       }
 
-      // Handle disconnection of clients
-      public void removeDeadConnections() {
-            // TODO
-      }
-
       // Info stored from a peer/client that connects to the server
       private static class peers {
             // Socket connection that was accepted by server
@@ -129,24 +133,12 @@ public class ncServer {
             private BufferedReader response;
             // Send a message to the server
             private DataOutputStream client;
-            // ID of the thread this peer belongs to
-            private int threadID;
 
             // Initialize connection to let our peer be able to interact with the server
             public peers(Socket connection) throws Exception {
                   this.connection = connection;
                   this.response = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
                   this.client = new DataOutputStream(this.connection.getOutputStream());
-            }
-
-            // Update thread id
-            public void setThreadID(int id) {
-                  this.threadID = id;
-            }
-
-            // Get this peers thread id
-            public int getThreadID() {
-                  return this.threadID;
             }
 
             // Read a message from server
