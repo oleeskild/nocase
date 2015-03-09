@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ncServer {
       // Socket-Listener for this server
@@ -16,6 +17,9 @@ public class ncServer {
 
       // Port this server is listening on
       private final int port;
+      
+      //Nicknames to the connections
+      HashMap<String, String> nickNames;
 
       public ncServer(int port) throws Exception {
             // Sets port to listen on
@@ -26,6 +30,8 @@ public class ncServer {
             threads = new ArrayList<Thread>();
             // Initialize connections/peer array
             connections = new ArrayList<peers>();
+            // Initialize nicknames
+            nickNames = new HashMap<String, String>();
             // Prints now listening for peers
             System.out.println("Listening for peers...");
 
@@ -46,6 +52,8 @@ public class ncServer {
                         Socket newClient = listener.accept();
                         // Add to our peer object
                         peers p = new peers(newClient);
+                        //Make a nickname
+                        nickNames.put(p.connection().getInetAddress().toString(), p.connection().getInetAddress().toString());
 
                         // Create a working thread for this peer
                         Thread t = new Thread() {
@@ -53,10 +61,18 @@ public class ncServer {
                                     // Loop forever
                                     while(true) {
                                           try {
+                                        	  	
+                                        	  	String msg = p.readMessage();
+                                        	  	//Checks for commands
+                                        	  	if(msg.startsWith("/")){
+                                        	  		if(msg.startsWith("/nick")){
+                                        	  			nickNames.put(p.connection().getInetAddress().toString(), msg.substring(6, msg.length()-1));
+                                        	  		}
+                                        	  	}
                                                 // Reads message and adds sender IP as name.
-                                                String msg = p.connection().getInetAddress() + ": " + p.readMessage();
+                                                msg = nickNames.get(p.connection().getInetAddress().toString()) + ": " + p.readMessage();
                                                 // Empty messages are not allowed
-                                                if(!msg.equals(p.connection().getInetAddress() + ": ")) {
+                                                if(!msg.equals(nickNames.get(p.connection().getInetAddress().toString()) + ": ")) {
                                                       // Broadcast message to every client connected.
                                                       broadcastMessage(msg);
                                                       // DEBUG -- Prints message to server terminal
