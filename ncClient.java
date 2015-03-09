@@ -34,11 +34,11 @@ public class ncClient {
             this.client = new DataOutputStream(this.connection.getOutputStream());
 
             // Start new thread to listen for incoming messages from server
-            msgRecieved();
+            msgHandler();
       }
 
       // Listens to incoming messages from server, on a new thread
-      public void msgRecieved() {
+      public void msgHandler() {
             (new Thread(){
                   @Override
                   public void run() {
