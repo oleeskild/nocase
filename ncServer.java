@@ -65,16 +65,22 @@ public class ncServer {
                                           } catch (Exception ex) {
                                                 // Connection error, closing connnection and stopping thread
                                                 try {
+                                                      // Broadcast message - user has left
+                                                      String abortMsg = "User " + p.connection.getInetAddress() + " disconnected!";
+
                                                       // Remove thread from active peers
                                                       threads.remove(Thread.currentThread());
-                                                      // DEBUG -- Print disconnect message to chat
-                                                      System.out.println("User " + p.connection.getInetAddress() + " aborted!");
                                                       // Close connection
                                                       p.connection().close();
                                                       // Remove peer from list
                                                       connections.remove(p);
+                                                      // Tell other peers that you left
+                                                      broadcastMessage(dcMsg);
                                                       // Stop thread
                                                       Thread.currentThread().stop();
+
+                                                      // DEBUG -- Print disconnect message to server console
+                                                      System.out.println(abortMsg);
                                                 } catch (Exception exx) {
                                                       // Exception while closing socket?
                                                 }
