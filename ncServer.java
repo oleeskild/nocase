@@ -68,52 +68,15 @@ public class ncServer {
                                                 String msg = p.readMessage();
                                         	  	//Checks for commands
                                         	  	if(msg.startsWith("/")){
-                                        	  		if(msg.startsWith("/nick")){
-                                        	  			String oldName = p.getNickname();
-                                        	  			p.setNickname(msg.substring(6, msg.length()));
-                                        	  			broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
-                                        	  		} else if(msg.startsWith("/motd")) {
-                                                                  requestMotd(p);
-                                                      } else if (msg.startsWith("/setmotd ")) {
-                                                            String motd_info[] = msg.split(" ");
-                                                            String newmotd = "";
-                                                            for(int i = 1; i < motd_info.length;i++){
-                                                                  newmotd += motd_info[i] + " ";
-                                                            }
-                                                            setMotd(newmotd);
-                                                      }
+                                        	  		processCommands(p,msg);
                                         	  	}else{
-	                                                // Reads message and adds sender IP/nickname as name.
-	                                                msg = p.getNickname() + ": " + msg;
-	                                                // Empty messages are not allowed
-	                                                if(!msg.equals(p.getNickname() + ": ")) {
-	                                                      // Broadcast message to every client connected.
-	                                                      broadcastMessage(msg);
-	                                                      // DEBUG -- Prints message to server terminal
-	                                                      if(debug)
-                                                                  System.out.println(msg);
-	                                                }
+                                                      // Processes the message and passes it to the broadcast function
+	                                                processMessage(p,msg);
                                         	  	}
                                           } catch (Exception ex) {
-                                                // Connection error, closing connnection and stopping thread
                                                 try {
-                                                      // Broadcast message - user has left
-                                                      String abortMsg = "User " + p.getNickname() + " disconnected!";
-
-                                                      // Remove thread from active peers
-                                                      threads.remove(Thread.currentThread());
-                                                      // Close connection
-                                                      p.connection().close();
-                                                      // Remove peer from list
-                                                      connections.remove(p);
-                                                      // Tell other peers that you left
-                                                      broadcastMessage(abortMsg);
-                                                      // Stop thread
-                                                      Thread.currentThread().stop();
-
-                                                      // DEBUG -- Print disconnect message to server console
-                                                      if(debug)
-                                                            System.out.println(abortMsg);
+                                                      // Connection error, closing connnection and stopping thread
+                                                      userDisconnected(p);
                                                 } catch (Exception exx) {
                                                       // Exception while closing socket?
                                                 }
@@ -142,6 +105,44 @@ public class ncServer {
             }).start();
       }
 
+
+      // Processes the commands and performs the requested action
+      public void processCommands(Peers p, String msg) throws Exception {
+            if(msg.startsWith("/nick")){
+                  // Store old name temporarily
+                  String oldName = p.getNickname();
+                  // Set the new name
+                  p.setNickname(msg.substring(6, msg.length()));
+                  // Let other peers know who this person is/was
+                  broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
+            } else if(msg.startsWith("/motd")) {
+                  // Message of the day was requested from this specific user
+                  requestMotd(p);
+            } else if (msg.startsWith("/setmotd ")) {
+                  // Updates the message of the day and prints it to all connected peers
+                  String motd_info[] = msg.split(" ");
+                  String newmotd = "";
+                  for(int i = 1; i < motd_info.length;i++){
+                        newmotd += motd_info[i] + " ";
+                  }
+                  setMotd(newmotd);
+            }
+      }
+
+      // Processes the message and passes it to the broadcastMessage function
+      public void processMessage(Peers p, String msg) throws Exception {
+            // Reads message and adds sender IP/nickname as name.
+            msg = p.getNickname() + ": " + msg;
+            // Empty messages are not allowed
+            if(!msg.equals(p.getNickname() + ": ")) {
+                  // Broadcast message to every client connected.
+                  broadcastMessage(msg);
+                  // DEBUG -- Prints message to server terminal
+                  if(debug)
+                        System.out.println(msg);
+            }
+      }
+
       // Broadcasts the message "msg" to all connected peers
       public void broadcastMessage(String msg) throws Exception {
             for(Peers p : connections) {
@@ -158,6 +159,27 @@ public class ncServer {
       // A specific peer wants to know the message of the day
       public void requestMotd(Peers p) throws Exception {
             p.sendMessage("<Motd> -> " + this.motd);
+      }
+
+      // When a user disconnects, close connection and remove from the appropriate lists
+      public void userDisconnected(Peers p) throws Exception {
+            // Broadcast message - user has left
+            String abortMsg = "User " + p.getNickname() + " disconnected!";
+            // Remove thread from active peers
+            threads.remove(Thread.currentThread());
+            // Close connection
+            p.connection().close();
+            // Remove peer from list
+            connections.remove(p);
+            // Tell other peers that you left
+            broadcastMessage(abortMsg);
+
+            // DEBUG -- Print disconnect message to server console
+            if(debug)
+                  System.out.println(abortMsg);
+
+            // Stop thread
+            Thread.currentThread().stop();
       }
 
       // Info stored from a peer/client that connects to the server
