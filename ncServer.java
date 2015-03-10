@@ -10,9 +10,9 @@ public class ncServer {
       // handle incoming and outgoing messages.
       private final ArrayList<Thread> threads;
 
-      // List of peers that are connected, needed / handles the broadcastMessage
+      // List of Peer that are connected, needed / handles the broadcastMessage
       // function. Might also be needed to handle disconnection of clients.
-      private final ArrayList<Peers> connections;
+      private final ArrayList<Peer> connections;
 
       // Port this server is listening on
       private final int port;
@@ -33,13 +33,13 @@ public class ncServer {
             // Initialize our thread array
             this.threads = new ArrayList<Thread>();
             // Initialize connections/peer array
-            this.connections = new ArrayList<Peers>();
+            this.connections = new ArrayList<Peer>();
             // Set default startup message of the day
             this.motd  = "Welcome to Operation Nocase.";
 
-            // DEBUG -- Prints now listening for peers
+            // DEBUG -- Prints now listening for Peer
             if(debug)
-                  System.out.println("Listening for peers...");
+                  System.out.println("Listening for Peer...");
 
             // Start listening for incoming connections on a separate thread.
             listen();
@@ -57,7 +57,7 @@ public class ncServer {
                         // Accept incoming connection
                         Socket newClient = listener.accept();
                         // Add to our peer object
-                        final Peers p = new Peers(newClient);
+                        final Peer p = new Peer(newClient);
 
                         // Create a working thread for this peer
                         Thread t = new Thread() {
@@ -107,25 +107,31 @@ public class ncServer {
 
 
       // Processes the commands and performs the requested action
-      public void processCommands(Peers p, String msg) throws Exception {
+      public void processCommands(Peer p, String msg) throws Exception {
             if(msg.startsWith("/nick ")){
                   // Store old name temporarily
                   String oldName = p.getNickname();
                   // Set the new name
                   p.setNickname(msg.substring(6, msg.length()));
-                  // Let other peers know who this person is/was
+                  // Let other Peer know who this person is/was
                   broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
-            } else if(msg.startsWith("/motd")) {
+            } else if(msg.equals("/motd")) {
                   // Message of the day was requested from this specific user
                   requestMotd(p);
             } else if (msg.startsWith("/setmotd ")) {
-                  // Updates the message of the day and prints it to all connected peers
+                  // Updates the message of the day and prints it to all connected Peer
                   setMotd(msg.substring(9, msg.length()));
+            } else if (msg.equals("/list")) {
+                  String list = "";
+                  for(Peer pList : connections) {
+                        list += pList.getNickname() + ", ";
+                  }
+                  p.sendMessage(list);
             }
       }
 
       // Processes the message and passes it to the broadcastMessage function
-      public void processMessage(Peers p, String msg) throws Exception {
+      public void processMessage(Peer p, String msg) throws Exception {
             // Reads message and adds sender IP/nickname as name.
             msg = p.getNickname() + ": " + msg;
             // Empty messages are not allowed
@@ -138,35 +144,35 @@ public class ncServer {
             }
       }
 
-      // Broadcasts the message "msg" to all connected peers
+      // Broadcasts the message "msg" to all connected Peer
       public void broadcastMessage(String msg) throws Exception {
-            for(Peers p : connections) {
+            for(Peer p : connections) {
                   p.sendMessage(msg);
             }
       }
 
-      // Message of the day has changed, broadcast to all peers
+      // Message of the day has changed, broadcast to all Peer
       public void setMotd(String newMsg) throws Exception {
             this.motd = newMsg;
             broadcastMessage("<Motd> -> " + this.motd);
       }
 
       // A specific peer wants to know the message of the day
-      public void requestMotd(Peers p) throws Exception {
+      public void requestMotd(Peer p) throws Exception {
             p.sendMessage("<Motd> -> " + this.motd);
       }
 
       // When a user disconnects, close connection and remove from the appropriate lists
-      public void userDisconnected(Peers p) throws Exception {
+      public void userDisconnected(Peer p) throws Exception {
             // Broadcast message - user has left
             String abortMsg = "User " + p.getNickname() + " disconnected!";
-            // Remove thread from active peers
+            // Remove thread from active Peer
             threads.remove(Thread.currentThread());
             // Close connection
             p.connection().close();
             // Remove peer from list
             connections.remove(p);
-            // Tell other peers that you left
+            // Tell other Peer that you left
             broadcastMessage(abortMsg);
 
             // DEBUG -- Print disconnect message to server console
@@ -178,7 +184,7 @@ public class ncServer {
       }
 
       // Info stored from a peer/client that connects to the server
-      private static class Peers {
+      private static class Peer {
             // Socket connection that was accepted by server
             private final Socket connection;
             // Read messages sent by the server
@@ -189,7 +195,7 @@ public class ncServer {
             private String nickname;
 
             // Initialize connection to let our peer be able to interact with the server
-            public Peers(Socket connection) throws Exception {
+            public Peer(Socket connection) throws Exception {
                   this.connection = connection;
                   this.response = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
                   this.client = new DataOutputStream(this.connection.getOutputStream());
