@@ -49,6 +49,8 @@ public class ncClient {
                         try {
                               System.out.println(readMessage());
                         } catch (Exception ex) {
+                              System.out.println("Connection Error! Aborting...");
+                              System.exit(0);
                         }
                   }
                   }
@@ -57,7 +59,12 @@ public class ncClient {
 
       // Read message from the server
       public String readMessage() throws Exception {
-            return this.response.readLine();
+            String msg = this.response.readLine();
+            if(msg == null) {
+                  System.out.println("Connection Error! Aborting...");
+                  System.exit(0);
+            }
+            return msg;
       }
 
       // Send message to the server
