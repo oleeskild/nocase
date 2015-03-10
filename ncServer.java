@@ -54,17 +54,16 @@ public class ncServer {
                                     // Loop forever
                                     while(true) {
                                           try {
-
-                                        	  	String msg = p.readMessage();
+                                                String msg = p.readMessage();
                                         	  	//Checks for commands
                                         	  	if(msg.startsWith("/")){
                                         	  		if(msg.startsWith("/nick")){
-                                        	  			String oldName = p.getNickname();                                        	 
+                                        	  			String oldName = p.getNickname();
                                         	  			p.setNickname(msg.substring(6, msg.length()));
                                         	  			broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
                                         	  		}
                                         	  	}else{
-	                                                // Reads message and adds sender IP as name.
+	                                                // Reads message and adds sender IP/nickname as name.
 	                                                msg = p.getNickname() + ": " + msg;
 	                                                // Empty messages are not allowed
 	                                                if(!msg.equals(p.getNickname() + ": ")) {
@@ -74,7 +73,6 @@ public class ncServer {
 	                                                      System.out.println(msg);
 	                                                }
                                         	  	}
-                                        	  	
                                           } catch (Exception ex) {
                                                 // Connection error, closing connnection and stopping thread
                                                 try {
@@ -164,7 +162,7 @@ public class ncServer {
 
             // Send a message to the server
             public void sendMessage(String s) throws Exception {
-                  this.client.writeBytes(s+"\n");
+                  this.client.write((s+"\n").getBytes("UTF-8"));
             }
 
             // Returns the Socket connection for this peer

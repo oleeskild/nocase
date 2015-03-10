@@ -59,7 +59,7 @@ public class ncClient {
 
       // Send message to the server
       public void sendMessage(String s) throws Exception {
-            this.client.writeBytes(s+"\n");
+            this.client.write((s+"\n").getBytes("UTF-8"));
       }
 
       // Returns this sockect connection that was accepted by the server
