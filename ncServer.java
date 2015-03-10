@@ -59,18 +59,22 @@ public class ncServer {
                                         	  	//Checks for commands
                                         	  	if(msg.startsWith("/")){
                                         	  		if(msg.startsWith("/nick")){
+                                        	  			String oldName = p.getNickname();                                        	 
                                         	  			p.setNickname(msg.substring(6, msg.length()));
+                                        	  			broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
                                         	  		}
+                                        	  	}else{
+	                                                // Reads message and adds sender IP as name.
+	                                                msg = p.getNickname() + ": " + msg;
+	                                                // Empty messages are not allowed
+	                                                if(!msg.equals(p.getNickname() + ": ")) {
+	                                                      // Broadcast message to every client connected.
+	                                                      broadcastMessage(msg);
+	                                                      // DEBUG -- Prints message to server terminal
+	                                                      System.out.println(msg);
+	                                                }
                                         	  	}
-                                                // Reads message and adds sender IP as name.
-                                                msg = p.getNickname() + ": " + msg;
-                                                // Empty messages are not allowed
-                                                if(!msg.equals(p.getNickname() + ": ")) {
-                                                      // Broadcast message to every client connected.
-                                                      broadcastMessage(msg);
-                                                      // DEBUG -- Prints message to server terminal
-                                                      System.out.println(msg);
-                                                }
+                                        	  	
                                           } catch (Exception ex) {
                                                 // Connection error, closing connnection and stopping thread
                                                 try {
