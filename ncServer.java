@@ -159,7 +159,7 @@ public class ncServer {
                         for(int i = 2; i < info.length;i++) {
                               msgTar.append(info[i] + " ");
                         }
-                        pTar.sendMessage(msgTar.toString());
+                        pTar.sendMessage("PM <" + p.getNickname() + ">: " + msgTar.toString());
                   }
             }
       }
