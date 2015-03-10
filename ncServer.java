@@ -3,6 +3,9 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 // self signed pki
 
@@ -16,7 +19,6 @@ public class ncServer {
 
       // List of peers that are connected, needed / handles the broadcastMessage
       // function. Might also be needed to handle disconnection of clients.
-      //private final ArrayList<Peer> connections;
       private final HashMap<String,Peer> connections;
 
       // Port this server is listening on
@@ -28,6 +30,9 @@ public class ncServer {
       // Message of the day
       private String motd;
 
+      // Set default date format to use to prefix messages
+      private final static DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+
       public ncServer(int port, boolean debug) throws Exception {
             // Sets port to listen on
             this.port = port;
@@ -38,7 +43,6 @@ public class ncServer {
             // Initialize our thread array
             this.threads = new ArrayList<Thread>();
             // Initialize connections/peer array
-            //this.connections = new ArrayList<Peer>();
             this.connections = new HashMap<String,Peer>();
             // Set default startup message of the day
             this.motd  = "Welcome to Operation Nocase.";
@@ -67,29 +71,29 @@ public class ncServer {
 
                         // Create a working thread for this peer
                         Thread t = new Thread() {
-                              public void run() {
-                                    // Loop forever
-                                    while(true) {
+                        public void run() {
+                              // Loop forever
+                              while(true) {
+                                    try {
+                                          String msg = p.readMessage();
+                                	         //Checks for commands
+                                        	 	if(msg.startsWith("/")){
+                                                // Processes the commands and performs the approriate action
+                                  	  		processCommands(p,msg);
+                                  	  	}else{
+                                                // Processes the message and passes it to the broadcast function
+                                               processMessage(p,msg);
+                                  	  	}
+                                    } catch (Exception ex) {
                                           try {
-                                                String msg = p.readMessage();
-                                        	  	//Checks for commands
-                                        	  	if(msg.startsWith("/")){
-                                        	  		processCommands(p,msg);
-                                        	  	}else{
-                                                      // Processes the message and passes it to the broadcast function
-	                                                processMessage(p,msg);
-                                        	  	}
-                                          } catch (Exception ex) {
-                                                try {
-                                                      // Connection error, closing connnection and stopping thread
-                                                      userDisconnected(p);
-                                                } catch (Exception exx) {
-                                                      // Exception while closing socket?
-                                                }
+                                                // Connection error, closing connnection and stopping thread
+                                                userDisconnected(p);
+                                          } catch (Exception exx) {
+                                                // Exception while closing socket?
                                           }
                                     }
                               }
-                        };
+                        }};
 
                         // Add the thread for this new client to our list
                         threads.add(t);
@@ -101,6 +105,8 @@ public class ncServer {
                         while(connections.containsKey(nick)) {
                               nick = "guest_" + (new Random()).nextInt(100);
                         }
+                        // Give this peer a nickname
+                        p.setNickname(nick);
                         // Broadcast to all connected clients that a new peer has joined the chat!
                         broadcastMessage(nick + " connected!");
                         // Add our new client to the list of connected peers
@@ -229,6 +235,11 @@ public class ncServer {
             Thread.currentThread().stop();
       }
 
+      // Returns timestamp, used to display when messages was sent
+      public static String getTimeStamp() {
+            return dateFormat.format(new Date());
+      }
+
       // Info stored from a peer/client that connects to the server
       private static class Peer {
             // Socket connection that was accepted by server
@@ -265,7 +276,7 @@ public class ncServer {
 
             // Send a message to the server
             public void sendMessage(String s) throws Exception {
-                  this.client.write((s+"\n").getBytes("UTF-8"));
+                  this.client.write(("[" + getTimeStamp() +"] " + s + "\n").getBytes("UTF-8"));
             }
 
             // Returns the Socket connection for this peer
