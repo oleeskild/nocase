@@ -178,10 +178,10 @@ public class ncServer {
 
       // Processes the message and passes it to the broadcastMessage function
       public void processMessage(Peer p, String msg) throws Exception {
-            // Reads message and adds sender IP/nickname as name.
-            msg = p.getNickname() + ": " + msg;
             // Empty messages are not allowed
-            if(!msg.equals(p.getNickname() + ": ")) {
+            if(!msg.equals("")) {
+                  // Reads message and adds sender IP/nickname as name.
+                  msg = "<" + p.getNickname() + ">: " + msg;
                   // Broadcast message to every client connected.
                   broadcastMessage(msg);
                   // DEBUG -- Prints message to server terminal
