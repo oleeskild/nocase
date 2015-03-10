@@ -1,7 +1,6 @@
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class ncServer {
       // Socket-Listener for this server
@@ -13,13 +12,10 @@ public class ncServer {
 
       // List of peers that are connected, needed / handles the broadcastMessage
       // function. Might also be needed to handle disconnection of clients.
-      private final ArrayList<peers> connections;
+      private final ArrayList<Peers> connections;
 
       // Port this server is listening on
       private final int port;
-      
-      //Nicknames to the connections
-      HashMap<String, String> nickNames;
 
       public ncServer(int port) throws Exception {
             // Sets port to listen on
@@ -29,9 +25,8 @@ public class ncServer {
             // Initialize our thread array
             threads = new ArrayList<Thread>();
             // Initialize connections/peer array
-            connections = new ArrayList<peers>();
-            // Initialize nicknames
-            nickNames = new HashMap<String, String>();
+            connections = new ArrayList<Peers>();
+
             // Prints now listening for peers
             System.out.println("Listening for peers...");
 
@@ -51,9 +46,7 @@ public class ncServer {
                         // Accept incoming connection
                         Socket newClient = listener.accept();
                         // Add to our peer object
-                        peers p = new peers(newClient);
-                        //Make a nickname
-                        nickNames.put(p.connection().getInetAddress().toString(), p.connection().getInetAddress().toString());
+                        Peers p = new Peers(newClient);
 
                         // Create a working thread for this peer
                         Thread t = new Thread() {
@@ -61,18 +54,18 @@ public class ncServer {
                                     // Loop forever
                                     while(true) {
                                           try {
-                                        	  	
+
                                         	  	String msg = p.readMessage();
                                         	  	//Checks for commands
                                         	  	if(msg.startsWith("/")){
                                         	  		if(msg.startsWith("/nick")){
-                                        	  			nickNames.put(p.connection().getInetAddress().toString(), msg.substring(6, msg.length()-1));
+                                        	  			p.setNickname(msg.substring(6, msg.length()));
                                         	  		}
                                         	  	}
                                                 // Reads message and adds sender IP as name.
-                                                msg = nickNames.get(p.connection().getInetAddress().toString()) + ": " + p.readMessage();
+                                                msg = p.getNickname() + ": " + msg;
                                                 // Empty messages are not allowed
-                                                if(!msg.equals(nickNames.get(p.connection().getInetAddress().toString()) + ": ")) {
+                                                if(!msg.equals(p.getNickname() + ": ")) {
                                                       // Broadcast message to every client connected.
                                                       broadcastMessage(msg);
                                                       // DEBUG -- Prints message to server terminal
@@ -82,7 +75,7 @@ public class ncServer {
                                                 // Connection error, closing connnection and stopping thread
                                                 try {
                                                       // Broadcast message - user has left
-                                                      String abortMsg = "User " + p.connection.getInetAddress() + " disconnected!";
+                                                      String abortMsg = "User " + p.getNickname() + " disconnected!";
 
                                                       // Remove thread from active peers
                                                       threads.remove(Thread.currentThread());
@@ -91,7 +84,7 @@ public class ncServer {
                                                       // Remove peer from list
                                                       connections.remove(p);
                                                       // Tell other peers that you left
-                                                      broadcastMessage(dcMsg);
+                                                      broadcastMessage(abortMsg);
                                                       // Stop thread
                                                       Thread.currentThread().stop();
 
@@ -126,25 +119,38 @@ public class ncServer {
 
       // Broadcasts the message "msg" to all connected peers
       public void broadcastMessage(String msg) throws Exception {
-            for(peers p : connections) {
+            for(Peers p : connections) {
                   p.sendMessage(msg);
             }
       }
 
       // Info stored from a peer/client that connects to the server
-      private static class peers {
+      private static class Peers {
             // Socket connection that was accepted by server
             private final Socket connection;
             // Read messages sent by the server
             private BufferedReader response;
             // Send a message to the server
             private DataOutputStream client;
+            // Nickname for this user
+            private String nickname;
 
             // Initialize connection to let our peer be able to interact with the server
-            public peers(Socket connection) throws Exception {
+            public Peers(Socket connection) throws Exception {
                   this.connection = connection;
                   this.response = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
                   this.client = new DataOutputStream(this.connection.getOutputStream());
+                  this.nickname = this.connection.getInetAddress().toString();
+            }
+
+            // Nickname for this peer
+            public String getNickname() {
+                  return this.nickname;
+            }
+
+            // Set new nickname
+            public void setNickname(String nick) {
+                  this.nickname = nick;
             }
 
             // Read a message from server
