@@ -59,7 +59,9 @@ public class ncServer {
                                         	  	//Checks for commands
                                         	  	if(msg.startsWith("/")){
                                         	  		if(msg.startsWith("/nick")){
+                                        	  			String oldName = p.getNickname();                                        	 
                                         	  			p.setNickname(msg.substring(6, msg.length()));
+                                        	  			broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
                                         	  		}
                                         	  	}else{
 	                                                // Reads message and adds sender IP as name.
