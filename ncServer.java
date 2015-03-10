@@ -152,14 +152,16 @@ public class ncServer {
                   setMotd(msg.substring(9, msg.length()));
             } else if (msg.equals("/list")) {
                   StringBuilder list = new StringBuilder();
-                  // Prefix with 'connected users'
-                  list.append("Connected users: ");
-
+                  // Adds the 'LIST' prefix
+                  list.append("LIST ");
                   // Adds the nickname of all connected peers
+                  int cnt = 0;
                   for(Peer pList : connections.values()) {
-                        list.append(pList.getNickname() + ", ");
+                        list.append(pList.getNickname());
+                        if(cnt < connections.values().size())
+                              list.append(" ");
+                        cnt++;
                   }
-
                   // Sends a messsage with all connected users as requested
                   p.sendMessage(list.toString());
             } else if (msg.startsWith("/pm ")) {
