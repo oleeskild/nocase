@@ -17,12 +17,17 @@ public class ncServer {
       // Port this server is listening on
       private final int port;
 
+      // Enables debug
+      private final boolean debug;
+
       // Message of the day
       private String motd;
 
-      public ncServer(int port) throws Exception {
+      public ncServer(int port, boolean debug) throws Exception {
             // Sets port to listen on
             this.port = port;
+            // Sets debug flag
+            this.debug = debug;
             // Initialize our listening socket
             this.listener = new ServerSocket(port);
             // Initialize our thread array
@@ -50,7 +55,7 @@ public class ncServer {
                         // Accept incoming connection
                         Socket newClient = listener.accept();
                         // Add to our peer object
-                        Peers p = new Peers(newClient);
+                        final Peers p = new Peers(newClient);
 
                         // Create a working thread for this peer
                         Thread t = new Thread() {
@@ -83,7 +88,8 @@ public class ncServer {
 	                                                      // Broadcast message to every client connected.
 	                                                      broadcastMessage(msg);
 	                                                      // DEBUG -- Prints message to server terminal
-	                                                      System.out.println(msg);
+	                                                      if(debug)
+                                                                  System.out.println(msg);
 	                                                }
                                         	  	}
                                           } catch (Exception ex) {
@@ -104,7 +110,8 @@ public class ncServer {
                                                       Thread.currentThread().stop();
 
                                                       // DEBUG -- Print disconnect message to server console
-                                                      System.out.println(abortMsg);
+                                                      if(debug)
+                                                            System.out.println(abortMsg);
                                                 } catch (Exception exx) {
                                                       // Exception while closing socket?
                                                 }
@@ -121,8 +128,9 @@ public class ncServer {
                         broadcastMessage(newClient.getInetAddress() + " connected!");
                         // Add our new client to the list of connected peers
                         connections.add(p);
-                        // Prints the IP of the client that connected to server console
-                        System.out.println(newClient.getInetAddress() + " connected!");
+                        // DEBUG -- Prints the IP of the client that connected to server console
+                        if(debug)
+                              System.out.println(newClient.getInetAddress() + " connected!");
 
                   } catch (Exception ex) {
                         //Exception dont add new connection
@@ -197,7 +205,17 @@ public class ncServer {
 
       // Start server on the given port
       public static void main(String[] args) throws Exception {
+            // Listen on port
             int port = 1337;
-            ncServer server = new ncServer(1337);
+            // Check for command line parameters
+            if(args.length >0){
+                  // Should enable debug messages
+            	if(args[0].toUpperCase().equals("-DEBUG")){
+            		ncServer server = new ncServer(port, true);
+                  }
+            }else{
+                  // Do not enable debug messages
+            	ncServer server = new ncServer(port, false);
+            }
       }
 }
