@@ -145,21 +145,33 @@ public class ncServer {
                   // Updates the message of the day and prints it to all connected Peer
                   setMotd(msg.substring(9, msg.length()));
             } else if (msg.equals("/list")) {
-                  String list = "Connected users: ";
+                  StringBuilder list = new StringBuilder();
+                  // Prefix with 'connected users'
+                  list.append("Connected users: ");
+
+                  // Adds the nickname of all connected peers
                   for(Peer pList : connections.values()) {
-                        list += pList.getNickname() + ", ";
+                        list.append(pList.getNickname() + ", ");
                   }
-                  p.sendMessage(list);
+
+                  // Sends a messsage with all connected users as requested
+                  p.sendMessage(list.toString());
             } else if (msg.startsWith("/pm ")) {
                   String info[] = msg.split(" ");
                   String reciever = info[1];
+                  // If reciever exists process message
                   if(connections.containsKey(reciever)) {
                         Peer pTar = connections.get(reciever);
                         StringBuilder msgTar = new StringBuilder();
+                        msgTar.append("PM <" + p.getNickname() + ">: ");
+
                         for(int i = 2; i < info.length;i++) {
                               msgTar.append(info[i] + " ");
                         }
-                        pTar.sendMessage("PM <" + p.getNickname() + ">: " + msgTar.toString());
+
+                        // Broadcast message to both reciever and sender
+                        p.sendMessage(msgTar.toString());
+                        pTar.sendMessage(msgTar.toString());
                   }
             }
       }
