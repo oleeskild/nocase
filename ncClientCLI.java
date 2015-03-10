@@ -1,3 +1,6 @@
+import java.net.*;
+import java.io.*;
+
 public class ncClientCLI {
       // Create a new client and establish a connection to the given host
       public static void main(String[] args) {
