@@ -108,7 +108,7 @@ public class ncServer {
 
       // Processes the commands and performs the requested action
       public void processCommands(Peers p, String msg) throws Exception {
-            if(msg.startsWith("/nick")){
+            if(msg.startsWith("/nick ")){
                   // Store old name temporarily
                   String oldName = p.getNickname();
                   // Set the new name
@@ -120,12 +120,7 @@ public class ncServer {
                   requestMotd(p);
             } else if (msg.startsWith("/setmotd ")) {
                   // Updates the message of the day and prints it to all connected peers
-                  String motd_info[] = msg.split(" ");
-                  String newmotd = "";
-                  for(int i = 1; i < motd_info.length;i++){
-                        newmotd += motd_info[i] + " ";
-                  }
-                  setMotd(newmotd);
+                  setMotd(msg.substring(9, msg.length()));
             }
       }
 
