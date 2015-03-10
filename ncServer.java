@@ -78,7 +78,7 @@ public class ncServer {
                                                             String motd_info[] = msg.split(" ");
                                                             String newmotd = "";
                                                             for(int i = 1; i < motd_info.length;i++){
-                                                                  newmotd += motd_info[i];
+                                                                  newmotd += motd_info[i] + " ";
                                                             }
                                                             setMotd(newmotd);
                                                       }
