@@ -36,8 +36,10 @@ public class ncServer {
             this.connections = new ArrayList<Peers>();
             // Set default startup message of the day
             this.motd  = "Welcome to Operation Nocase.";
-            // Prints now listening for peers
-            System.out.println("Listening for peers...");
+
+            // DEBUG -- Prints now listening for peers
+            if(debug)
+                  System.out.println("Listening for peers...");
 
             // Start listening for incoming connections on a separate thread.
             listen();
