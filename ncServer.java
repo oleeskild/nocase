@@ -1,6 +1,10 @@
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
+
+// self signed pki
 
 public class ncServer {
       // Socket-Listener for this server
@@ -12,7 +16,8 @@ public class ncServer {
 
       // List of peers that are connected, needed / handles the broadcastMessage
       // function. Might also be needed to handle disconnection of clients.
-      private final ArrayList<Peer> connections;
+      //private final ArrayList<Peer> connections;
+      private final HashMap<String,Peer> connections;
 
       // Port this server is listening on
       private final int port;
@@ -33,7 +38,8 @@ public class ncServer {
             // Initialize our thread array
             this.threads = new ArrayList<Thread>();
             // Initialize connections/peer array
-            this.connections = new ArrayList<Peer>();
+            //this.connections = new ArrayList<Peer>();
+            this.connections = new HashMap<String,Peer>();
             // Set default startup message of the day
             this.motd  = "Welcome to Operation Nocase.";
 
@@ -89,10 +95,17 @@ public class ncServer {
                         threads.add(t);
                         // Start this thread
                         t.start();
+
+                        // Check for duplicate ips, give random nickname if needed
+                        String nick = newClient.getInetAddress().toString();
+                        while(connections.containsKey(nick)) {
+                              nick = "guest_" + (new Random()).nextInt(100);
+                        }
                         // Broadcast to all connected clients that a new peer has joined the chat!
-                        broadcastMessage(newClient.getInetAddress() + " connected!");
+                        broadcastMessage(nick + " connected!");
                         // Add our new client to the list of connected peers
-                        connections.add(p);
+                        connections.put(nick, p);
+
                         // DEBUG -- Prints the IP of the client that connected to server console
                         if(debug)
                               System.out.println(newClient.getInetAddress() + " connected!");
@@ -111,10 +124,20 @@ public class ncServer {
             if(msg.startsWith("/nick ")){
                   // Store old name temporarily
                   String oldName = p.getNickname();
-                  // Set the new name
-                  p.setNickname(msg.substring(6, msg.length()));
-                  // Let other Peer know who this person is/was
-                  broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
+                  // Check if name exists
+                  String newName = msg.substring(6, msg.length());
+                  if(!connections.containsKey(newName)) {
+                        // Remove old nick-entry from hashmap (list of connected peers)
+                        connections.remove(oldName);
+                        // Set the new name
+                        p.setNickname(newName);
+                        // Create a key for the new nickname in our hashmap
+                        connections.put(newName, p);
+                        // Let other Peer know who this person is/was
+                        broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
+                  } else {
+                        p.sendMessage("Requested nickname is taken!");
+                  }
             } else if(msg.equals("/motd")) {
                   // Message of the day was requested from this specific user
                   requestMotd(p);
@@ -123,10 +146,21 @@ public class ncServer {
                   setMotd(msg.substring(9, msg.length()));
             } else if (msg.equals("/list")) {
                   String list = "Connected users: ";
-                  for(Peer pList : connections) {
+                  for(Peer pList : connections.values()) {
                         list += pList.getNickname() + ", ";
                   }
                   p.sendMessage(list);
+            } else if (msg.startsWith("/pm ")) {
+                  String info[] = msg.split(" ");
+                  String reciever = info[1];
+                  if(connections.containsKey(reciever)) {
+                        Peer pTar = connections.get(reciever);
+                        StringBuilder msgTar = new StringBuilder();
+                        for(int i = 2; i < info.length;i++) {
+                              msgTar.append(info[i] + " ");
+                        }
+                        pTar.sendMessage(msgTar.toString());
+                  }
             }
       }
 
@@ -146,7 +180,7 @@ public class ncServer {
 
       // Broadcasts the message "msg" to all connected peers
       public void broadcastMessage(String msg) throws Exception {
-            for(Peer p : connections) {
+            for(Peer p : connections.values()) {
                   p.sendMessage(msg);
             }
       }
@@ -171,7 +205,7 @@ public class ncServer {
             // Close connection
             p.connection().close();
             // Remove peer from list
-            connections.remove(p);
+            connections.remove(p.getNickname());
             // Tell other peers that you left
             broadcastMessage(abortMsg);
 
