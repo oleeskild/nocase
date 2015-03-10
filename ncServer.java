@@ -17,16 +17,20 @@ public class ncServer {
       // Port this server is listening on
       private final int port;
 
+      // Message of the day
+      private String motd;
+
       public ncServer(int port) throws Exception {
             // Sets port to listen on
             this.port = port;
             // Initialize our listening socket
-            listener = new ServerSocket(port);
+            this.listener = new ServerSocket(port);
             // Initialize our thread array
-            threads = new ArrayList<Thread>();
+            this.threads = new ArrayList<Thread>();
             // Initialize connections/peer array
-            connections = new ArrayList<Peers>();
-
+            this.connections = new ArrayList<Peers>();
+            // Set default startup message of the day
+            this.motd  = "Welcome to Operation Nocase.";
             // Prints now listening for peers
             System.out.println("Listening for peers...");
 
@@ -61,7 +65,16 @@ public class ncServer {
                                         	  			String oldName = p.getNickname();
                                         	  			p.setNickname(msg.substring(6, msg.length()));
                                         	  			broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
-                                        	  		}
+                                        	  		} else if(msg.startsWith("/motd")) {
+                                                                  requestMotd(p);
+                                                      } else if (msg.startsWith("/setmotd ")) {
+                                                            String motd_info[] = msg.split(" ");
+                                                            String newmotd = "";
+                                                            for(int i = 1; i < motd_info.length;i++){
+                                                                  newmotd += motd_info[i];
+                                                            }
+                                                            setMotd(newmotd);
+                                                      }
                                         	  	}else{
 	                                                // Reads message and adds sender IP/nickname as name.
 	                                                msg = p.getNickname() + ": " + msg;
@@ -124,6 +137,17 @@ public class ncServer {
             for(Peers p : connections) {
                   p.sendMessage(msg);
             }
+      }
+
+      // Message of the day has changed, broadcast to all peers
+      public void setMotd(String newMsg) throws Exception {
+            this.motd = newMsg;
+            broadcastMessage("<Motd> -> " + this.motd);
+      }
+
+      // A specific peer wants to know the message of the day
+      public void requestMotd(Peers p) throws Exception {
+            p.sendMessage("<Motd> -> " + this.motd);
       }
 
       // Info stored from a peer/client that connects to the server
