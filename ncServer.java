@@ -61,7 +61,7 @@ public class ncServer {
                                         	  		if(msg.startsWith("/nick")){
                                         	  			p.setNickname(msg.substring(6, msg.length()));
                                         	  		}
-                                        	  	
+                                        	  	}else{
 	                                                // Reads message and adds sender IP as name.
 	                                                msg = p.getNickname() + ": " + msg;
 	                                                // Empty messages are not allowed
@@ -72,6 +72,7 @@ public class ncServer {
 	                                                      System.out.println(msg);
 	                                                }
                                         	  	}
+                                        	  	
                                           } catch (Exception ex) {
                                                 // Connection error, closing connnection and stopping thread
                                                 try {
