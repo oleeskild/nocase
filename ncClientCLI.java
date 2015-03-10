@@ -21,8 +21,11 @@ public class ncClientCLI {
                         if(msg.equals("/quit") || msg.equals("/exit")) {
                               exit = true;
                               break;
+                        } else if (msg.equals("/mute")) {
+                              client.setNotificationStatus(!client.getNotificationStatus());
+                        } else {
+                              client.sendMessage(msg);
                         }
-                        client.sendMessage(msg);
                   } while(!exit);
                   client.connection().close();
             } catch (Exception ex) {

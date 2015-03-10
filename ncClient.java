@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import sun.audio.*;
 
 public class ncClient {
       // This clients socket connection that got accepted by the server
@@ -10,6 +11,10 @@ public class ncClient {
       private BufferedReader response;
       // Send messages to the server
       private DataOutputStream client;
+      // Constant string containing the name of our sound file
+      private final String SOUND_FILE = "notification.wav";
+      // Play a sound when a message is recieved
+      private boolean useMsgSound;
 
       // Try to connect to server
       public ncClient(String host, int p) throws Exception {
@@ -38,6 +43,7 @@ public class ncClient {
 
             // Request message of the day when connecting
             this.sendMessage("/motd");
+            this.useMsgSound = true;
       }
 
       // Listens to incoming messages from server, on a new thread
@@ -48,6 +54,11 @@ public class ncClient {
                   while(true) {
                         try {
                               System.out.println(readMessage());
+
+                              // Does this client want to have a sound notification?
+                              if(useMsgSound) {
+                                    playSound();
+                              }
                         } catch (Exception ex) {
                               System.out.println("Connection Error! Aborting...");
                               System.exit(0);
@@ -55,6 +66,27 @@ public class ncClient {
                   }
                   }
             }).start();
+      }
+
+      // Set a new value for wether we should play notification sounds or not
+      public void setNotificationStatus(boolean status) {
+            this.useMsgSound = status;
+      }
+
+      // Return the current value of message notification
+      public boolean getNotificationStatus() {
+            return this.useMsgSound;
+      }
+
+      // Plays a sound to let the user know a new message was recieved
+      public void playSound() {
+            try {
+                  // Opens an audiostream from the file specified at in SOUND_FILE
+                  AudioStream audioStream = new AudioStream(new FileInputStream(new File(SOUND_FILE)));
+                  AudioPlayer.player.start(audioStream);
+            } catch (Exception e) {
+                  // Sound could not be played
+            }
       }
 
       // Read message from the server
