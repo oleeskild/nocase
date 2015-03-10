@@ -122,7 +122,7 @@ public class ncServer {
                   // Updates the message of the day and prints it to all connected Peer
                   setMotd(msg.substring(9, msg.length()));
             } else if (msg.equals("/list")) {
-                  String list = "";
+                  String list = "Connected users: ";
                   for(Peer pList : connections) {
                         list += pList.getNickname() + ", ";
                   }
