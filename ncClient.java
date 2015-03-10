@@ -35,6 +35,9 @@ public class ncClient {
 
             // Start new thread to listen for incoming messages from server
             msgHandler();
+
+            // Request message of the day when connecting
+            this.sendMessage("/motd");
       }
 
       // Listens to incoming messages from server, on a new thread
