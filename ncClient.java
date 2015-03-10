@@ -15,13 +15,19 @@ public class ncClient {
       private final String SOUND_FILE = "notification.wav";
       // Play a sound when a message is recieved
       private boolean useMsgSound;
+      // Debug flag
+      private final boolean debug;
 
       // Try to connect to server
-      public ncClient(String host, int p) throws Exception {
+      public ncClient(String host, int p, boolean debug) throws Exception {
             // Set port to  connect to
             this.port = p;
+            // Set debug
+            this.debug = debug;
+
             // Prints info
-            System.out.println("Connecting to " + host + " on port " + this.port);
+            if(debug)
+                  System.out.println("Connecting to " + host + " on port " + this.port);
 
             try {
                   // Tries to establish a connection to host, on port
@@ -33,39 +39,16 @@ public class ncClient {
             }
 
             // Connection was successfully established
-            System.out.println("Connected...");
+            if(debug)
+                  System.out.println("Connected...");
+
             // Update streams for this connection
             this.response = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
             this.client = new DataOutputStream(this.connection.getOutputStream());
 
-            // Start new thread to listen for incoming messages from server
-            msgHandler();
-
             // Request message of the day when connecting
             this.sendMessage("/motd");
             this.useMsgSound = true;
-      }
-
-      // Listens to incoming messages from server, on a new thread
-      public void msgHandler() {
-            (new Thread(){
-                  @Override
-                  public void run() {
-                  while(true) {
-                        try {
-                              System.out.println(readMessage());
-
-                              // Does this client want to have a sound notification?
-                              if(useMsgSound) {
-                                    playSound();
-                              }
-                        } catch (Exception ex) {
-                              System.out.println("Connection Error! Aborting...");
-                              System.exit(0);
-                        }
-                  }
-                  }
-            }).start();
       }
 
       // Set a new value for wether we should play notification sounds or not
@@ -92,9 +75,18 @@ public class ncClient {
       // Read message from the server
       public String readMessage() throws Exception {
             String msg = this.response.readLine();
+            // could not read message from server, possible connection error
             if(msg == null) {
-                  System.out.println("Connection Error! Aborting...");
-                  System.exit(0);
+                  if(debug) {
+                        System.out.println("Connection Error! Aborting...");
+                        System.exit(0);
+                  } else {
+                        return "Connection Error!";
+                  }
+            }
+            // Does this client want to have a sound notification?
+            if(useMsgSound) {
+                  playSound();
             }
             return msg;
       }
@@ -104,7 +96,7 @@ public class ncClient {
             this.client.write((s+"\n").getBytes("UTF-8"));
       }
 
-      // Returns this sockect connection that was accepted by the server
+      // Returns this socket connection that was accepted by the server
       public Socket connection() throws Exception {
             return connection;
       }
