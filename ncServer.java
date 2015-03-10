@@ -10,7 +10,7 @@ public class ncServer {
       // handle incoming and outgoing messages.
       private final ArrayList<Thread> threads;
 
-      // List of Peer that are connected, needed / handles the broadcastMessage
+      // List of peers that are connected, needed / handles the broadcastMessage
       // function. Might also be needed to handle disconnection of clients.
       private final ArrayList<Peer> connections;
 
@@ -37,9 +37,9 @@ public class ncServer {
             // Set default startup message of the day
             this.motd  = "Welcome to Operation Nocase.";
 
-            // DEBUG -- Prints now listening for Peer
+            // DEBUG -- Prints now listening for peers
             if(debug)
-                  System.out.println("Listening for Peer...");
+                  System.out.println("Listening for peers...");
 
             // Start listening for incoming connections on a separate thread.
             listen();
@@ -144,14 +144,14 @@ public class ncServer {
             }
       }
 
-      // Broadcasts the message "msg" to all connected Peer
+      // Broadcasts the message "msg" to all connected peers
       public void broadcastMessage(String msg) throws Exception {
             for(Peer p : connections) {
                   p.sendMessage(msg);
             }
       }
 
-      // Message of the day has changed, broadcast to all Peer
+      // Message of the day has changed, broadcast to all peers
       public void setMotd(String newMsg) throws Exception {
             this.motd = newMsg;
             broadcastMessage("<Motd> -> " + this.motd);
@@ -166,13 +166,13 @@ public class ncServer {
       public void userDisconnected(Peer p) throws Exception {
             // Broadcast message - user has left
             String abortMsg = "User " + p.getNickname() + " disconnected!";
-            // Remove thread from active Peer
+            // Remove thread from active peer
             threads.remove(Thread.currentThread());
             // Close connection
             p.connection().close();
             // Remove peer from list
             connections.remove(p);
-            // Tell other Peer that you left
+            // Tell other peers that you left
             broadcastMessage(abortMsg);
 
             // DEBUG -- Print disconnect message to server console
