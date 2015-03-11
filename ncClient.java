@@ -62,7 +62,7 @@ public class ncClient {
       }
 
       // Plays a sound to let the user know a new message was recieved
-      public void playSound() {
+      public void playNotificationSound() {
             try {
                   // Opens an audiostream from the file specified at in SOUND_FILE
                   AudioStream audioStream = new AudioStream(new FileInputStream(new File(SOUND_FILE)));
@@ -83,10 +83,6 @@ public class ncClient {
                   } else {
                         return "Connection Error!";
                   }
-            }
-            // Does this client want to have a sound notification?
-            if(useMsgSound) {
-                  playSound();
             }
             return msg;
       }
