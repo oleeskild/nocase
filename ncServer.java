@@ -131,14 +131,19 @@ public class ncServer {
                         connections.remove(oldName);
                         // Set the new name
                         p.setNickname(newName);
+                        p.sendMessage("<clientNick> " + p.getNickname());
+
                         // Create a key for the new nickname in our hashmap
                         connections.put(newName, p);
-                        // Let other Peer know who this person is/was
+                        // Let other peers know who this person is/was
                         broadcastMessage("<Nick> -> <" + oldName + "> is now known as <" + p.getNickname() + ">");
                   } else {
                         p.sendMessage("Requested nickname is taken!");
                   }
-            } else if(msg.equals("/motd")) {
+            } else if(msg.equals("/getNick")) {
+                  // Client wants to know his nickname
+                  p.sendMessage("<clientNick> " + p.getNickname());
+            }else if(msg.equals("/motd")) {
                   // Message of the day was requested from this specific user
                   requestMotd(p);
             } else if (msg.startsWith("/setmotd ")) {
