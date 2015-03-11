@@ -14,6 +14,8 @@ public class ncClient {
       private BufferedReader response;
       // Send messages to the server
       private DataOutputStream client;
+      // Clients nickname given by server
+      private String nickname;
       // Constant string containing the name of our sound file
       private final String SOUND_FILE = "notification.wav";
       // Play a sound when a message is recieved
@@ -79,6 +81,22 @@ public class ncClient {
             } catch (Exception e) {
                   // Sound could not be played
             }
+      }
+
+      // Query server for nickname
+      public void queryNickname() throws Exception {
+            sendMessage("/getNick");
+      }
+
+      // Return clients nickname
+      public String getNickname() {
+            return this.nickname;
+      }
+
+      // Updates local nickname variable
+      // PS: can, but SHOULD not be used without queryNickname()
+      public void setNickname(String nick) {
+            this.nickname = nick;
       }
 
       // Read message from the server
