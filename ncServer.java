@@ -3,9 +3,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 // self signed pki
 
@@ -29,9 +26,6 @@ public class ncServer {
 
       // Message of the day
       private String motd;
-
-      // Set default date format to use to prefix messages
-      private final static DateFormat dateFormat = new SimpleDateFormat("HH:mm");
 
       public ncServer(int port, boolean debug) throws Exception {
             // Sets port to listen on
@@ -73,7 +67,7 @@ public class ncServer {
                         Thread t = new Thread() {
                         public void run() {
                               // Loop forever
-                              while(true) {
+                              while(p.getConnectionStatus()) {
                                     try {
                                           String msg = p.readMessage();
                                 	         //Checks for commands
@@ -108,7 +102,7 @@ public class ncServer {
                         // Give this peer a nickname
                         p.setNickname(nick);
                         // Broadcast to all connected clients that a new peer has joined the chat!
-                        broadcastMessage(nick + " connected!");
+                        broadcastMessage("<Connection> -> " + nick + " connected!");
                         // Add our new client to the list of connected peers
                         connections.put(nick, p);
 
@@ -140,7 +134,7 @@ public class ncServer {
                         // Create a key for the new nickname in our hashmap
                         connections.put(newName, p);
                         // Let other Peer know who this person is/was
-                        broadcastMessage("<" + oldName + "> is now known as <" + p.getNickname() + ">");
+                        broadcastMessage("<Nick> -> <" + oldName + "> is now known as <" + p.getNickname() + ">");
                   } else {
                         p.sendMessage("Requested nickname is taken!");
                   }
@@ -210,7 +204,7 @@ public class ncServer {
       // Message of the day has changed, broadcast to all peers
       public void setMotd(String changedBy, String newMsg) throws Exception {
             this.motd = newMsg;
-            broadcastMessage("<Motd> -> " + this.motd + " <- changed by " + changedBy);
+            broadcastMessage("<New Motd> -> " + this.motd + " <- changed by " + changedBy);
       }
 
       // A specific peer wants to know the message of the day
@@ -221,7 +215,7 @@ public class ncServer {
       // When a user disconnects, close connection and remove from the appropriate lists
       public void userDisconnected(Peer p) throws Exception {
             // Broadcast message - user has left
-            String abortMsg = "User " + p.getNickname() + " disconnected!";
+            String abortMsg = "<Connection> -> " + p.getNickname() + " disconnected!";
             // Remove thread from active peer
             threads.remove(Thread.currentThread());
             // Close connection
@@ -236,12 +230,8 @@ public class ncServer {
                   System.out.println(abortMsg);
 
             // Stop thread
+            p.setConnectionStatus(false);
             Thread.currentThread().join();
-      }
-
-      // Returns timestamp, used to display when messages was sent
-      public static String getTimeStamp() {
-            return dateFormat.format(new Date());
       }
 
       // Info stored from a peer/client that connects to the server
@@ -254,6 +244,8 @@ public class ncServer {
             private DataOutputStream client;
             // Nickname for this user
             private String nickname;
+            // Is this peer still connected?
+            private boolean isConnected;
 
             // Initialize connection to let our peer be able to interact with the server
             public Peer(Socket connection) throws Exception {
@@ -261,6 +253,7 @@ public class ncServer {
                   this.response = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
                   this.client = new DataOutputStream(this.connection.getOutputStream());
                   this.nickname = this.connection.getInetAddress().toString();
+                  this.isConnected = true;
             }
 
             // Nickname for this peer
@@ -280,7 +273,17 @@ public class ncServer {
 
             // Send a message to the server
             public void sendMessage(String s) throws Exception {
-                  this.client.write(("[" + getTimeStamp() +"] " + s + "\n").getBytes("UTF-8"));
+                  this.client.write((s + "\n").getBytes("UTF-8"));
+            }
+
+            // Update this peers connection status, used to properly stop the associated thread
+            public void setConnectionStatus(boolean status) {
+                  this.isConnected = status;
+            }
+
+            // Get connection status
+            public boolean getConnectionStatus() {
+                  return this.isConnected;
             }
 
             // Returns the Socket connection for this peer
