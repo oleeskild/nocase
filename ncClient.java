@@ -1,6 +1,9 @@
 import java.net.*;
 import java.io.*;
 import sun.audio.*;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 public class ncClient {
       // This clients socket connection that got accepted by the server
@@ -17,6 +20,9 @@ public class ncClient {
       private boolean useMsgSound;
       // Debug flag
       private final boolean debug;
+      // Set default date format to use to prefix messages
+      private final static DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+
 
       // Try to connect to server
       public ncClient(String host, int p, boolean debug) throws Exception {
@@ -89,7 +95,12 @@ public class ncClient {
 
       // Send message to the server
       public void sendMessage(String s) throws Exception {
-            this.client.write((s+"\n").getBytes("UTF-8"));
+            this.client.write((s + "\n").getBytes("UTF-8"));
+      }
+
+      // Returns timestamp, used to display when messages was sent
+      public static String getTimeStamp() {
+            return dateFormat.format(new Date());
       }
 
       // Returns this socket connection that was accepted by the server
