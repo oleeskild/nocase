@@ -5,25 +5,22 @@ public class ncClientCLI {
       // Create a new client and establish a connection to the given host
       public static void main(String[] args) {
             try {
-                  BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+                  final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                   System.out.print("Connect to host: ");
 
-                  String host = br.readLine();
-                  int port = 1337;
-
-                  ncClient client = null;
+                  final String host = br.readLine();
+                  final int port = 1337;
+                  boolean enableDebug = false;
 
                   // Debug flag prints messages to syso
                   if(args.length >0){
                         // Should enable debug messages
                   	if(args[0].toUpperCase().equals("-DEBUG")){
-                              client = new ncClient(host,port,true);
+                              enableDebug = true;
                         }
-                  }else{
-                        // Do not enable debug messages
-                        client = new ncClient(host,port,false);
                   }
 
+                  final ncClient client = new ncClient(host,port,enableDebug);
 
                   msgHandler(client);
 
@@ -49,7 +46,7 @@ public class ncClientCLI {
       }
 
       // Listens to incoming messages from server, on a new thread
-      public static void msgHandler(ncClient client) {
+      public static void msgHandler(final ncClient client) {
             (new Thread(){
                   @Override
                   public void run() {
