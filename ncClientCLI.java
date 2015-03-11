@@ -64,7 +64,7 @@ public class ncClientCLI {
                               } else if (message.contains("LIST")) {
                                     String[] conUsers = message.split(" ");
                                     if(conUsers[1].equals("LIST")) {
-                                          String newMsg = "Connected users: ";
+                                          String newMsg = conUsers[0] + " Connected users: ";
                                           for(int i = 2; i < conUsers.length; i++) {
                                                 newMsg += conUsers[i] + ", ";
                                           }
