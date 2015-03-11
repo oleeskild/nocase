@@ -166,20 +166,23 @@ public class ncServer {
                   p.sendMessage(list.toString());
             } else if (msg.startsWith("/pm ")) {
                   String info[] = msg.split(" ");
-                  String reciever = info[1];
-                  // If reciever exists process message
-                  if(connections.containsKey(reciever)) {
-                        Peer pTar = connections.get(reciever);
-                        StringBuilder msgTar = new StringBuilder();
-                        msgTar.append("PM <" + p.getNickname() + ">: ");
+                  // Check that a reciever was given
+                  if(info.length > 1) {
+                        String reciever = info[1];
+                        // If reciever exists process message
+                        if(!reciever.equals("") && connections.containsKey(reciever)) {
+                              Peer pTar = connections.get(reciever);
+                              StringBuilder msgTar = new StringBuilder();
+                              msgTar.append("PM <" + p.getNickname() + ">: ");
 
-                        for(int i = 2; i < info.length;i++) {
-                              msgTar.append(info[i] + " ");
+                              for(int i = 2; i < info.length;i++) {
+                                    msgTar.append(info[i] + " ");
+                              }
+
+                              // Broadcast message to both reciever and sender
+                              p.sendMessage(msgTar.toString());
+                              pTar.sendMessage(msgTar.toString());
                         }
-
-                        // Broadcast message to both reciever and sender
-                        p.sendMessage(msgTar.toString());
-                        pTar.sendMessage(msgTar.toString());
                   }
             }
       }
