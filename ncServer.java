@@ -126,7 +126,7 @@ public class ncServer {
                   String oldName = p.getNickname();
 
                   String info[] = msg.split(" ");
-                  // Check that a reciever was given
+                  // Check that a nickname was given
                   if(info.length > 1) {
                         String newName = info[1];
                         if(!connections.containsKey(newName)) {
