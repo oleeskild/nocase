@@ -64,12 +64,16 @@ public class ncClientCLI {
                                     newMsg.append("Connected users: ");
                                     newMsg.append(message.substring(5,message.length()-1).replace(" ",", "));
                                     message = newMsg.toString();
+                              } else if (message.startsWith("<clientNick> ")) {
+                                    client.setNickname(message.substring(13, message.length()));
+                                    continue;
                               }
 
                               // Does this client want to have a sound notification?
-                              if(client.getNotificationStatus()) {
+                              if(client.getNotificationStatus() && !message.startsWith("<" + client.getNickname() + ">")) {
                                     client.playNotificationSound();
                               }
+
                               System.out.println(client.getTimeStamp() + " " + message);
 
                         } catch (Exception ex) {
