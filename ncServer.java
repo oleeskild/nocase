@@ -236,7 +236,7 @@ public class ncServer {
                   System.out.println(abortMsg);
 
             // Stop thread
-            Thread.currentThread().stop();
+            Thread.currentThread().join();
       }
 
       // Returns timestamp, used to display when messages was sent
