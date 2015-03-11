@@ -124,21 +124,25 @@ public class ncServer {
             if(msg.startsWith("/nick ")){
                   // Store old name temporarily
                   String oldName = p.getNickname();
-                  // Check if name exists
-                  String newName = msg.substring(6, msg.length());
-                  if(!connections.containsKey(newName)) {
-                        // Remove old nick-entry from hashmap (list of connected peers)
-                        connections.remove(oldName);
-                        // Set the new name
-                        p.setNickname(newName);
-                        p.sendMessage("<clientNick> " + p.getNickname());
 
-                        // Create a key for the new nickname in our hashmap
-                        connections.put(newName, p);
-                        // Let other peers know who this person is/was
-                        broadcastMessage("<Nick> -> <" + oldName + "> is now known as <" + p.getNickname() + ">");
-                  } else {
-                        p.sendMessage("Requested nickname is taken!");
+                  String info[] = msg.split(" ");
+                  // Check that a reciever was given
+                  if(info.length > 1) {
+                        String newName = info[1];
+                        if(!connections.containsKey(newName)) {
+                              // Remove old nick-entry from hashmap (list of connected peers)
+                              connections.remove(oldName);
+                              // Set the new name
+                              p.setNickname(newName);
+                              p.sendMessage("<clientNick> " + p.getNickname());
+
+                              // Create a key for the new nickname in our hashmap
+                              connections.put(newName, p);
+                              // Let other peers know who this person is/was
+                              broadcastMessage("<Nick> -> <" + oldName + "> is now known as <" + p.getNickname() + ">");
+                        } else {
+                              p.sendMessage("Requested nickname is taken!");
+                        }
                   }
             } else if(msg.equals("/getNick")) {
                   // Client wants to know his nickname
