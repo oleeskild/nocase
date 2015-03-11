@@ -149,7 +149,7 @@ public class ncServer {
                   requestMotd(p);
             } else if (msg.startsWith("/setmotd ")) {
                   // Updates the message of the day and prints it to all connected Peer
-                  setMotd(msg.substring(9, msg.length()));
+                  setMotd(p.getNickname(), msg.substring(9, msg.length()));
             } else if (msg.equals("/list")) {
                   StringBuilder list = new StringBuilder();
                   // Adds the 'LIST' prefix
@@ -209,9 +209,9 @@ public class ncServer {
       }
 
       // Message of the day has changed, broadcast to all peers
-      public void setMotd(String newMsg) throws Exception {
+      public void setMotd(String changedBy, String newMsg) throws Exception {
             this.motd = newMsg;
-            broadcastMessage("<Motd> -> " + this.motd);
+            broadcastMessage("<Motd> -> " + this.motd + " <- changed by " + changedBy);
       }
 
       // A specific peer wants to know the message of the day
