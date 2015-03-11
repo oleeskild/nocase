@@ -56,7 +56,23 @@ public class ncClientCLI {
                   while(true) {
                         try {
                               // Gets message from server
-                              System.out.println(client.readMessage());
+                              String message = client.readMessage();
+                              if(message.equals("Connection Error!")) {
+                                    System.out.println("Connection Error! Aborting...");
+                                    client.connection().close();
+                                    System.exit(0);
+                              } else if (message.contains("LIST")) {
+                                    String[] conUsers = message.split(" ");
+                                    if(conUsers[1].equals("LIST")) {
+                                          String newMsg = "Connected users: ";
+                                          for(int i = 2; i < conUsers.length; i++) {
+                                                newMsg += conUsers[i] + ", ";
+                                          }
+                                          message = newMsg;
+                                    }
+                              }
+
+                              System.out.println(message);
 
                         } catch (Exception ex) {
                               System.out.println("Connection Error! Aborting...");
