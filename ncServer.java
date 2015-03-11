@@ -173,15 +173,14 @@ public class ncServer {
                         if(!reciever.equals("") && connections.containsKey(reciever)) {
                               Peer pTar = connections.get(reciever);
                               StringBuilder msgTar = new StringBuilder();
-                              msgTar.append("PM <" + p.getNickname() + ">: ");
 
                               for(int i = 2; i < info.length;i++) {
                                     msgTar.append(info[i] + " ");
                               }
 
                               // Broadcast message to both reciever and sender
-                              p.sendMessage(msgTar.toString());
-                              pTar.sendMessage(msgTar.toString());
+                              p.sendMessage("PM to <" + pTar.getNickname() + ">: " + msgTar.toString());
+                              pTar.sendMessage("PM <" + p.getNickname() + ">: " + msgTar.toString());
                         }
                   }
             }
@@ -294,15 +293,17 @@ public class ncServer {
       public static void main(String[] args) throws Exception {
             // Listen on port
             int port = 1337;
+            // enable debug?
+            boolean enableDebug = false;
+
             // Check for command line parameters
-            if(args.length >0){
+            if(args.length > 0) {
                   // Should enable debug messages
             	if(args[0].toUpperCase().equals("-DEBUG")){
-            		ncServer server = new ncServer(port, true);
+            		enableDebug = true;
                   }
-            }else{
-                  // Do not enable debug messages
-            	ncServer server = new ncServer(port, false);
             }
+
+            ncServer server = new ncServer(port, enableDebug);
       }
 }
