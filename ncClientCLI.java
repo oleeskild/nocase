@@ -58,22 +58,19 @@ public class ncClientCLI {
                                     System.out.println("Connection Error! Aborting...");
                                     client.connection().close();
                                     System.exit(0);
-                              } else if (message.contains("LIST")) {
+                              } else if (message.startsWith("LIST")) {
                                     String[] conUsers = message.split(" ");
-                                    if(conUsers[1].equals("LIST")) {
-                                          String newMsg = conUsers[0] + " Connected users: ";
-                                          for(int i = 2; i < conUsers.length; i++) {
-                                                newMsg += conUsers[i] + ", ";
-                                          }
-                                          message = newMsg;
-                                    }
+                                    StringBuilder newMsg = new StringBuilder();
+                                    newMsg.append("Connected users: ");
+                                    newMsg.append(message.substring(5,message.length()-1).replace(" ",", "));
+                                    message = newMsg.toString();
                               }
 
                               // Does this client want to have a sound notification?
                               if(client.getNotificationStatus()) {
                                     client.playNotificationSound();
                               }
-                              System.out.println(message);
+                              System.out.println(client.getTimeStamp() + " " + message);
 
                         } catch (Exception ex) {
                               System.out.println("Connection Error! Aborting...");
