@@ -72,6 +72,10 @@ public class ncClientCLI {
                                     }
                               }
 
+                              // Does this client want to have a sound notification?
+                              if(client.getNotificationStatus()) {
+                                    client.playNotificationSound();
+                              }
                               System.out.println(message);
 
                         } catch (Exception ex) {
