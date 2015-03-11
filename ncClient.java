@@ -1,9 +1,9 @@
 import java.net.*;
 import java.io.*;
-import sun.audio.*;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import javax.sound.sampled.*;
 
 public class ncClient {
       // This clients socket connection that got accepted by the server
@@ -70,9 +70,12 @@ public class ncClient {
       // Plays a sound to let the user know a new message was recieved
       public void playNotificationSound() {
             try {
-                  // Opens an audiostream from the file specified at in SOUND_FILE
-                  AudioStream audioStream = new AudioStream(new FileInputStream(new File(SOUND_FILE)));
-                  AudioPlayer.player.start(audioStream);
+                  AudioInputStream stream = AudioSystem.getAudioInputStream(new File(SOUND_FILE));
+                  AudioFormat format = stream.getFormat();
+                  DataLine.Info info = new DataLine.Info(Clip.class, format);
+                  Clip clip = (Clip) AudioSystem.getLine(info);
+                  clip.open(stream);
+                  clip.start();
             } catch (Exception e) {
                   // Sound could not be played
             }
