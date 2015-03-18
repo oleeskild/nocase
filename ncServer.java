@@ -10,6 +10,9 @@ public class ncServer {
       // Entry password for this server
       private final String SERVER_PASSWORD;
 
+      // is password enabled?
+      private final boolean PASSWORD_PROTECTED;
+
       // Socket-Listener for this server
       private final ServerSocket listener;
 
@@ -37,6 +40,9 @@ public class ncServer {
             this.debug = debug;
             // Set the password
             this.SERVER_PASSWORD = password;
+            // should we use a password?
+            this.PASSWORD_PROTECTED = !this.SERVER_PASSWORD.equals("");
+
             // Initialize our listening socket
             this.listener = new ServerSocket(port);
             // Initialize our thread array
@@ -67,7 +73,12 @@ public class ncServer {
                         Socket newClient = listener.accept();
                         // Add to our peer object
                         final Peer p = new Peer(newClient);
-                        p.sendMessage("<verify>");
+                        if(PASSWORD_PROTECTED) {
+                              p.sendMessage("<verify>");
+                        } else {
+                              p.verify();
+                              p.sendMessage("<verified>");
+                        }
 
                         // Create a working thread for this peer
                         Thread t = new Thread() {
@@ -92,6 +103,7 @@ public class ncServer {
                                                 }
                                                 continue;
                                           }
+
                                 	         //Checks for commands
                                         	 	if(msg.startsWith("/")){
                                                 // Processes the commands and performs the approriate action
@@ -344,7 +356,7 @@ public class ncServer {
             // enable debug?
             boolean enableDebug = false;
             // password
-            String pass = "password";
+            String pass = "";
             // Check for command line parameters
             if(args.length > 0) {
                   for(int i = 0; i < args.length; i++) {
