@@ -7,6 +7,9 @@ import java.util.Random;
 // self signed pki
 
 public class ncServer {
+      // Entry password for this server
+      private final String SERVER_PASSWORD;
+
       // Socket-Listener for this server
       private final ServerSocket listener;
 
@@ -27,11 +30,13 @@ public class ncServer {
       // Message of the day
       private String motd;
 
-      public ncServer(int port, boolean debug) throws Exception {
+      public ncServer(int port, boolean debug, String password) throws Exception {
             // Sets port to listen on
             this.port = port;
             // Sets debug flag
             this.debug = debug;
+            // Set the password
+            this.SERVER_PASSWORD = password;
             // Initialize our listening socket
             this.listener = new ServerSocket(port);
             // Initialize our thread array
@@ -62,6 +67,7 @@ public class ncServer {
                         Socket newClient = listener.accept();
                         // Add to our peer object
                         final Peer p = new Peer(newClient);
+                        p.sendMessage("<verify>");
 
                         // Create a working thread for this peer
                         Thread t = new Thread() {
@@ -70,6 +76,22 @@ public class ncServer {
                               while(p.getConnectionStatus()) {
                                     try {
                                           String msg = p.readMessage();
+
+                                          // Try to verify client
+                                          if(!p.isVerified()) {
+                                                if (msg.startsWith("/verify ")) {
+                                                      String[] info = msg.split(" ");
+                                                      String pass = info[1];
+                                                      if(pass.equals(SERVER_PASSWORD)) {
+                                                            p.verify();
+                                                            p.sendMessage("<verified>");
+                                                      } else {
+                                                            broadcastMessage("<Authentication> -> " + p.getNickname() + " wrong password!");
+                                                            userDisconnected(p);
+                                                      }
+                                                }
+                                                continue;
+                                          }
                                 	         //Checks for commands
                                         	 	if(msg.startsWith("/")){
                                                 // Processes the commands and performs the approriate action
@@ -255,6 +277,8 @@ public class ncServer {
             private String nickname;
             // Is this peer still connected?
             private boolean isConnected;
+            // Is this user permitted to connect?
+            private boolean verified;
 
             // Initialize connection to let our peer be able to interact with the server
             public Peer(Socket connection) throws Exception {
@@ -263,6 +287,7 @@ public class ncServer {
                   this.client = new DataOutputStream(this.connection.getOutputStream());
                   this.nickname = this.connection.getInetAddress().toString();
                   this.isConnected = true;
+                  this.verified = false;
             }
 
             // Nickname for this peer
@@ -295,6 +320,16 @@ public class ncServer {
                   return this.isConnected;
             }
 
+            // This client is now successfully verified
+            public void verify() {
+                  this.verified = true;
+            }
+
+            // Is this client verified?
+            public boolean isVerified() {
+                        return this.verified;
+            }
+
             // Returns the Socket connection for this peer
             public Socket connection() {
                   return this.connection;
@@ -303,19 +338,30 @@ public class ncServer {
 
       // Start server on the given port
       public static void main(String[] args) throws Exception {
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(System.in));
             // Listen on port
             int port = 1337;
             // enable debug?
             boolean enableDebug = false;
-
+            // password
+            String pass = "password";
             // Check for command line parameters
             if(args.length > 0) {
-                  // Should enable debug messages
-            	if(args[0].toUpperCase().equals("-DEBUG")){
-            		enableDebug = true;
+                  for(int i = 0; i < args.length; i++) {
+                        // Should enable debug messages
+                        if(args[i].toUpperCase().equals("-DEBUG")) {
+                              enableDebug = true;
+                        } // take password as input
+                        else if (args[i].toUpperCase().equals("-P")) {
+                              pass = args[i+1];
+                        } // read password from file
+                        else if (args[i].toUpperCase().equals("-F")) {
+                              buffer = new BufferedReader(new FileReader(args[i+1]));
+                              pass = buffer.readLine();
+                        }
                   }
             }
 
-            ncServer server = new ncServer(port, enableDebug);
+            ncServer server = new ncServer(port, enableDebug, pass);
       }
 }
