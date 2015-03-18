@@ -96,12 +96,11 @@ public class ncServer {
                                                       if(pass.equals(SERVER_PASSWORD)) {
                                                             p.verify();
                                                             p.sendMessage("<verified>");
-                                                      } else {
-                                                            broadcastMessage("<Authentication> -> " + p.getNickname() + " wrong password!");
-                                                            userDisconnected(p);
+                                                            continue;
                                                       }
                                                 }
-                                                continue;
+                                                broadcastMessage("<Authentication> -> " + p.getNickname() + " authentication failed!");
+                                                userDisconnected(p);
                                           }
 
                                 	         //Checks for commands
