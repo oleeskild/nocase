@@ -22,6 +22,8 @@ public class ncClient {
       private boolean useMsgSound;
       // Debug flag
       private final boolean debug;
+      // Is this client accepted by the server?
+      private boolean verified;
       // Set default date format to use to prefix messages
       private final static DateFormat dateFormat = new SimpleDateFormat("HH:mm");
 
@@ -32,6 +34,8 @@ public class ncClient {
             this.port = p;
             // Set debug
             this.debug = debug;
+            // require authentication
+            this.verified = false;
 
             // Prints info
             if(debug)
@@ -54,8 +58,7 @@ public class ncClient {
             this.response = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
             this.client = new DataOutputStream(this.connection.getOutputStream());
 
-            // Request message of the day when connecting
-            this.sendMessage("/motd");
+            // Client enables message notification sound by default
             this.useMsgSound = true;
       }
 
@@ -97,6 +100,16 @@ public class ncClient {
       // PS: can, but SHOULD not be used without queryNickname()
       public void setNickname(String nick) {
             this.nickname = nick;
+      }
+
+      // Client verification success
+      public void verify() {
+            this.verified = true;
+      }
+
+      // Has client been accepted by server?
+      public boolean isVerified() {
+            return this.verified;
       }
 
       // Read message from the server
