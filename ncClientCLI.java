@@ -50,7 +50,7 @@ public class ncClientCLI {
       }
 
       // Listens to incoming messages from server, on a new thread
-      public static void msgHandler(final ncClient client, BufferedReader br) {
+      public static void msgHandler(final ncClient client, final BufferedReader br) {
             (new Thread(){
                   @Override
                   public void run() {
