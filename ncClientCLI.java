@@ -22,11 +22,15 @@ public class ncClientCLI {
 
                   final ncClient client = new ncClient(host,port,enableDebug);
 
-                  msgHandler(client);
+                  msgHandler(client, br);
 
                   // Connected successfully, query user for messages
                   boolean exit = false;
+
                   do {
+                        if(!client.isVerified())
+                              continue;
+
                         String msg = br.readLine();
                         // Aborted by user?
                         if(msg.equals("/quit") || msg.equals("/exit")) {
@@ -46,7 +50,7 @@ public class ncClientCLI {
       }
 
       // Listens to incoming messages from server, on a new thread
-      public static void msgHandler(final ncClient client) {
+      public static void msgHandler(final ncClient client, BufferedReader br) {
             (new Thread(){
                   @Override
                   public void run() {
@@ -66,6 +70,16 @@ public class ncClientCLI {
                                     message = newMsg.toString();
                               } else if (message.startsWith("<clientNick> ")) {
                                     client.setNickname(message.substring(13, message.length()));
+                                    continue;
+                              } else if (message.equals("<verify>")) {
+                                    System.out.print("Enter server password: ");
+                                    String key = br.readLine();
+                                    client.sendMessage("/verify " + key);
+                                    continue;
+                              }else if (message.equals("<verified>")) {
+                                    System.out.println("Authenticated...");
+                                    client.verify();
+                                    client.sendMessage("/motd");
                                     continue;
                               }
 
